@@ -62,7 +62,6 @@ class MyDataset(Dataset[tuple[torch.Tensor, int]]):
                 if label < 0 or label > 9:
                     print(f"Warning: 无效标签值 {label} 在文件 {label_path}")
                     label = -1
-            print(label)
         except Exception as e:
             print(f"Warning: 无法读取或解析标签文件 {label_path},\n[ Error ] : {str(e)}")
         
