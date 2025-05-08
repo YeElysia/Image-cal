@@ -8,6 +8,7 @@
   - [目录](#目录)
   - [安装](#安装)
   - [使用](#使用)
+  - [Config 设置](#config-设置)
 
 ## 安装
 
@@ -54,4 +55,8 @@
    ```bash
    python main.py
    ```
+
+## Config 设置
+
+配置文件 `default.yaml` 包含大部分的设置：
 

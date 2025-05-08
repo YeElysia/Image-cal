@@ -45,6 +45,8 @@ class Trainer:
         self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.1)
 
         self.data_load = False
+
+        self.visible = self.args.visible
         
 
     def load_data(self):
@@ -185,13 +187,14 @@ class Trainer:
         total_time = time.time() - start_time
         logger.info(f"训练完成! 总时间: {total_time//3600:.0f}h {(total_time%3600)//60:.0f}m {total_time%60:.0f}s")
         logger.info(f"最佳验证准确率: {best_acc:.2f}%")
-        
+
         # 可视化训练过程
-        plot_training_history(self.history, title="Training History")
+        if self.visible:
+            plot_training_history(self.history, title="Training History")
         
         # 可视化模型预测
-        print("可视化验证集预测示例:")
-        visualize_model_predictions(self.model, self.val_loader, classes, self.device)
+        if self.visible:
+            visualize_model_predictions(self.model, self.val_loader, classes, self.device)
 
 if __name__ == "__main__":
     # 设置设备

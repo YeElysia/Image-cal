@@ -10,6 +10,7 @@ This project implements a YOLO (You Only Look Once) classifier for object detect
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Config setting](#config-setting)
 
 ## Installation
 
@@ -55,4 +56,8 @@ This project implements a YOLO (You Only Look Once) classifier for object detect
    ```bash
    python main.py
    ```
+
+## Config setting
+
+The configuration file `default.yaml` contains most of the settings:
 
