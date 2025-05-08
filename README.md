@@ -2,7 +2,7 @@
 
 This project implements a YOLO (You Only Look Once) classifier for object detection using PyTorch. It includes data loading, training, and evaluation functionalities, along with visualization of training history and model predictions.
 
-[中文](https://github.com/YeElysia/Image-cal/blob/master/README.zh_CN.md)
+[中文](https://github.com/YeElysia/Image-cal/blob/master/README.zh-CN.md)
 
 ## Table of Contents
 
