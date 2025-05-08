@@ -1,0 +1,25 @@
+# classification settings -----------------------------------------------------------------------------------------------
+num_classes: 10 # (int) number of classes
+classes:
+  {
+    0: 'RS',
+    1: 'R1',
+    2: 'R2',
+    3: 'R3',
+    4: 'R4',
+    5: 'BS',
+    6: 'B1',
+    7: 'B2',
+    8: 'B3',
+    9: 'B4',
+  }
+
+# Train settings -------------------------------------------------------------------------------------------------------
+device: 'cpu' # (str, optional) device to run on, i.e. cuda, cpu
+dataset: 'dataset' # (str, Path, optional) path to dataset
+epochs: 20 # (int) number of epochs to train for
+batch_size: 50 # (int, optional) batch size, auto or int
+# visualization settings -----------------------------------------------------------------------------------------------
+num_images: 25 # (int) number of images to visualize
+
+
