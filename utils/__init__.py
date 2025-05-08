@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from typing import Dict, Any, Union
 from pathlib import Path
 import re

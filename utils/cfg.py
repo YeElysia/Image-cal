@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 from types import SimpleNamespace
 from typing import Dict, Any, Union, Optional, Iterator, Tuple
 from pathlib import Path
@@ -81,7 +83,7 @@ class IterableNamespace(SimpleNamespace):
         """
         return getattr(self, key, default)
 
-def check_dict_alignment(cfg: Dict[str, Any], overrides: Dict[str, Any]) -> None:
+def check_dict_alignment(cfg: Dict[str, Any], overrides: Dict[Any, Any]) -> None:
     """检查配置字典的对齐情况"""
     for k, v in overrides.items():
         if k in cfg and type(v) != type(cfg[k]):
@@ -129,8 +131,8 @@ def cfg2dict(cfg: Union[str, Path, Dict[str, Any], SimpleNamespace]) -> Dict[str
     return cfg
 
 
-def get_cfg(cfg: Union[str, Path, Dict[str, Any], SimpleNamespace] = "default.yaml", 
-           overrides: Optional[Dict[str, Any]] = None) -> IterableNamespace:
+def get_cfg(cfg: Union[str, Path, Dict[str, Any], SimpleNamespace] = "cfg/default.yaml", 
+           overrides: Optional[Dict[Any, Any]] = None) -> IterableNamespace:
     """
     从文件或字典加载并合并配置数据，支持可选的覆盖值。
 
