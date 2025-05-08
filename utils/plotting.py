@@ -1,3 +1,5 @@
+# Copyright (c) 2025 Yeelysia. All rights reserved.
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch

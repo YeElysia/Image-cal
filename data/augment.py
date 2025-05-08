@@ -1,3 +1,5 @@
+# Copyright (c) 2025 Yeelysia. All rights reserved.
+
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 

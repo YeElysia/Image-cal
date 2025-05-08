@@ -1,3 +1,5 @@
+# Copyright (c) 2025 Yeelysia. All rights reserved.
+
 import torch
 import torch.nn as nn
 import os

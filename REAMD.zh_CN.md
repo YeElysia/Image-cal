@@ -6,9 +6,15 @@
 
 - [图片分类器](#图片分类器)
   - [目录](#目录)
+  - [开源协议](#开源协议)
   - [安装](#安装)
   - [使用](#使用)
   - [Config 设置](#config-设置)
+
+## 开源协议
+
+- 本项目部分代码基于 [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)（AGPL-3.0 许可证）。
+- 由于 AGPL 的限制，本项目整体采用 AGPL-3.0 许可证。
 
 ## 安装
 

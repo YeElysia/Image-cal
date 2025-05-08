@@ -8,9 +8,15 @@ This project implements a YOLO (You Only Look Once) classifier for object detect
 
 - [Image Classifier](#image-classifier)
   - [Table of Contents](#table-of-contents)
+  - [Open source licenses](#open-source-licenses)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Config setting](#config-setting)
+
+## Open source licenses
+
+- Part of the code of this project is based on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) (AGPL-3.0 license).
+- Due to the restrictions of AGPL, this project adopts the AGPL-3.0 license as a whole.
 
 ## Installation
 

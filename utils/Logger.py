@@ -1,7 +1,8 @@
+# Copyright (c) 2025 Yeelysia. All rights reserved.
+
 import logging
 import os
 from datetime import datetime
-
 
 class Logger:
     def __init__(self, log_dir: str = "logs", debug_info: bool = False):
@@ -27,12 +28,6 @@ class Logger:
         sh.setFormatter(formatter)
         self.logger.addHandler(fh)
         fh.setFormatter(formatter)
-
-        self.logger.debug('debug_log_test')
-        self.logger.info('info_log_test')
-        self.logger.warning('warning_log_test')
-        self.logger.error('error_log_test')
-        self.logger.critical('critical_log_test')
         
         
     def debug(self, message: str):
