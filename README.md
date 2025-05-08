@@ -17,6 +17,7 @@ This project implements a YOLO (You Only Look Once) classifier for object detect
 
 - Part of the code of this project is based on [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) (AGPL-3.0 license).
 - Due to the restrictions of AGPL, this project adopts the AGPL-3.0 license as a whole.
+- This is my first time using AGPL-3.0 License. Please point out any errors.
 
 ## Installation
 

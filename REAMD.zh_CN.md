@@ -15,6 +15,7 @@
 
 - 本项目部分代码基于 [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)（AGPL-3.0 许可证）。
 - 由于 AGPL 的限制，本项目整体采用 AGPL-3.0 许可证。
+- 我第一次使用 AGPL-3.0 License，如有错误请指出
 
 ## 安装
 
