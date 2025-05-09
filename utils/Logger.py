@@ -5,14 +5,13 @@ import os
 from datetime import datetime
 
 class Logger:
-    def __init__(self, log_dir: str = "logs", debug_info: bool = False):
+    def __init__(self, log_dir: str = "logs"):
         self.log_dir = log_dir
-        self.debug_info = debug_info
         self.setup_logger()
     
     def setup_logger(self):
         self.logger = logging.getLogger('logger')
-        self.logger.setLevel(logging.DEBUG if self.debug_info else logging.INFO)
+        self.logger.setLevel(logging.INFO)
 
         formatter = logging.Formatter(fmt="%(asctime)s [ %(filename)s ]  %(lineno)d行 | [ %(levelname)s ] | [%(message)s]", datefmt="%Y/%m/%d/%X")
         sh = logging.StreamHandler()
@@ -44,3 +43,5 @@ class Logger:
 
     def critical(self, message: str):
         self.logger.critical(message)
+
+logger = Logger(log_dir='logs')
