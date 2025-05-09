@@ -43,19 +43,14 @@ This project implements a YOLO (You Only Look Once) classifier for object detect
 
    ```
    dataset/
-   ├── train/
-   │   ├── class_name_1/
-   │   │   ├── *.jpg
-   │   │   └── ...
-   │   └── clss_name_2/
-   │   │   ├── *.jpg
-   │   │   └── ...
-   └── val/
-       ├── class_name_1/
-       └── class_name_2/
+   ├── class_name_1/
+   │   ├── *.jpg
+   │   └── ...
+   └── clss_name_2/
+   │   ├── *.jpg
+   │   └── ...
+   └── ...
    ```
-
-   The txt file only contains numbers representing categories. Please make sure to adjust the classes in the yaml file to match your categories.
 
 2. Update the `data_dir` variable in `main.py` to point to your dataset directory.
 

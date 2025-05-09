@@ -41,19 +41,14 @@
 
    ```
    dataset/
-   ├── train/
-   │   ├── class_name_1/
-   │   │   ├── *.jpg
-   │   │   └── ...
-   │   └── clss_name_2/
-   │   │   ├── *.jpg
-   │   │   └── ...
-   └── val/
-       ├── class_name_1/
-       └── class_name_2/
+   ├── class_name_1/
+   │   ├── *.jpg
+   │   └── ...
+   └── clss_name_2/
+   │   ├── *.jpg
+   │   └── ...
+   └── ...
    ```
-
-   txt 文件中仅有代表类别的数字，注意调整 yaml 文件中的 classes 与你的类别适配。
 
 2. 更新 `main.py` 中的 `data_dir` 变量以指向您的数据集目录。
    你也可以更改`cfg/default.yaml` 中的 `dataset` 变量。
