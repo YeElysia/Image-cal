@@ -1,64 +1,12 @@
 # Copyright (c) 2025 Yeelysia. All rights reserved.
 
-import os
-import cv2
 import numpy as np
 
 import torch
-from torch.utils.data import Dataset
-from albumentations import Compose
-from typing import Any,Optional,Union,List,Tuple
-from pathlib import Path
+from torch.utils.data import Dataset,Subset
+
+from typing import Any,List,Tuple
 from .augment import classify_augmentations, classify_transforms
-from PIL import Image
-
-class BaseDataset(Dataset[tuple[torch.Tensor, int]]):
-    def __init__(self, img_dir: str, label_dir: str, transform: Compose):
-        self.img_dir = img_dir
-        self.label_dir = label_dir
-        self.transform = transform
-        
-        # 获取所有图片文件
-        self.img_files = [f for f in os.listdir(img_dir)]
-        
-        # 验证每个图片是否有对应的标签文件
-        self.valid_samples: list[str] = []
-        for img_file in self.img_files:
-            label_file = os.path.splitext(img_file)[0] + '.txt'
-            label_path = os.path.join(label_dir, label_file)
-            if os.path.exists(label_path):
-                self.valid_samples.append(img_file)
-            else:
-                print(f"Warning: 缺少标签文件 {label_file}")
-
-    def __len__(self):
-        return len(self.valid_samples)
-
-    def load_image(self, img_path: str) -> Optional[np.ndarray[Any, Any]]:
-        """Load an image from the specified path."""
-        
-        try:
-            image = cv2.imread(img_path)
-        except Exception as e:
-            print(f"Warning: 无法读取图像 {img_path}, 错误: {str(e)}")
-            return None
-        
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        return image
-
-    def load_label(self, label_path: str) -> int:
-        """Load a label from the specified path."""
-        label = -1  # Default invalid label
-        try:
-            with open(label_path, 'r') as f:
-                label = int(f.read().strip())
-                if label < 0 or label > 9:
-                    print(f"Warning: 无效标签值 {label} 在文件 {label_path}")
-                    label = -1
-        except Exception as e:
-            print(f"Warning: 无法读取或解析标签文件 {label_path},\n[ Error ] : {str(e)}")
-        return label
-
 class ClassifyDataset(Dataset[tuple[torch.Tensor, int]]):
     """
     Args:
@@ -71,7 +19,7 @@ class ClassifyDataset(Dataset[tuple[torch.Tensor, int]]):
         __len__(): 返回数据集中样本的总数。
     """
 
-    def __init__(self, root: Union[str, Path], augment: bool = False):
+    def __init__(self, samples, augment: bool = False):
         """
         使用根目录、增强初始化 ClassifyDataset 对象。
 
@@ -79,15 +27,8 @@ class ClassifyDataset(Dataset[tuple[torch.Tensor, int]]):
             root (str): 数据集目录的路径。
             augment (bool, optional): 是否对数据集应用增强。
         """
-        from torchvision.datasets import ImageFolder
 
-        self.base = ImageFolder(root=root, allow_empty=True)
-
-        self._samples : List[Tuple[str, int]] = self.base.samples # type: ignore
-        self.root : Union[str, Path] = self.base.root # type: ignore
- 
-
-        self.samples : List[List[Any]] = list(x) for x in self._samples]  # file, index # type: ignore
+        self.samples : List[List[Any]] = [ list(x) for x in samples]  # file, index # type: ignore
  
         self.torch_transforms = classify_augmentations if augment else classify_transforms
         
@@ -103,13 +44,52 @@ class ClassifyDataset(Dataset[tuple[torch.Tensor, int]]):
             (dict): 包含图像及其类别索引的字典。
         """
         f, j= self.samples[i]  # filename, index
-        im = cv2.imread(f)  # BGR
 
         # Convert NumPy array to PIL image
-        im = Image.fromarray(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-        sample = self.torch_transforms(im)['image']
+        im = np.array(f)
+        sample = self.torch_transforms(image=im)['image']
         return sample, j
 
     def __len__(self) -> int:
         """Return the total number of samples in the dataset."""
         return len(self.samples)
+    
+
+def split_dataset(data_path: str, train_ratio: float = 0.8, val_ratio: float = 0.1) -> Tuple[ClassifyDataset, ClassifyDataset, ClassifyDataset]:
+    """
+    将数据集划分为训练集、验证集和测试集。
+
+    Args:
+        data_path (str): 数据集的根目录路径。
+        train_ratio (float): 训练集的比例。
+        val_ratio (float): 验证集的比例。
+
+    Returns:
+        Tuple[ClassifyDataset, ClassifyDataset, ClassifyDataset]: 包含训练集、验证集和测试集的元组。
+    """
+    from torchvision.datasets import ImageFolder
+    from torch.utils.data import random_split
+
+    # 获取所有样本
+    dataset = ImageFolder(root=data_path)
+    total_samples = len(dataset)
+
+    # 计算训练集、验证集和测试集的数量
+    train_samples = int(total_samples * train_ratio)
+    val_samples = int(total_samples * val_ratio)
+    test_samples = total_samples - train_samples - val_samples
+
+    # 随机划分数据集
+    train_dataset, val_dataset, test_dataset = random_split(dataset, [train_samples, val_samples, test_samples])
+
+    # 将划分后的数据集转换为 ClassifyDataset 实例
+    train_classify_dataset = ClassifyDataset(train_dataset)  # 这里需要根据实际情况调整
+    val_classify_dataset = ClassifyDataset(val_dataset)    # 这里需要根据实际情况调整
+    test_classify_dataset = ClassifyDataset(test_dataset)   # 这里需要根据实际情况调整
+
+    print(train_classify_dataset.samples[0])
+
+    return train_classify_dataset, val_classify_dataset, test_classify_dataset
+
+
+
