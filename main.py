@@ -9,12 +9,11 @@ from tqdm import tqdm
 
 import time
 from net.yolo import YOLO_CLA
-from data.augment import get_transforms
-from data.dataset import MyDataset
+from data.dataset import split_dataset
 from utils.plotting import plot_training_history, visualize_model_predictions
 from utils.cfg import get_cfg
 from typing import Any
-from utils.Logger import Logger
+from utils.Logger import logger
 
 class Trainer:
     def __init__(self, **kwargs: Any):
@@ -52,17 +51,8 @@ class Trainer:
         
 
     def load_data(self):
-        train_img_dir = os.path.join(self.dataset_path, 'train', 'images')
-        train_label_dir = os.path.join(self.dataset_path, 'train', 'labels')
-        val_img_dir = os.path.join(self.dataset_path, 'val', 'images')
-        val_label_dir = os.path.join(self.dataset_path, 'val', 'labels')
-
-        # 数据增强和预处理
-        train_transform, val_transform = get_transforms()
-
         # 创建数据集
-        self.train_dataset = MyDataset(train_img_dir, train_label_dir, transform=train_transform)
-        self.val_dataset = MyDataset(val_img_dir, val_label_dir, transform=val_transform)
+        self.train_dataset, self.val_dataset, self.test_dataset = split_dataset(self.dataset_path)
 
         # 检查数据集
         if len(self.train_dataset) == 0:
@@ -92,14 +82,23 @@ class Trainer:
         best_acc = 0.0
         logger.info("开始训练...")
         start_time = time.time()
+        
+        train_loss, train_correct, train_total = 0.0, 0, 0
+        loss = 0.0
         for epoch in range(self.num_epochs):
                         
             epoch_start = time.time()
             self.model.train()
-            train_loss, train_correct, train_total = 0.0, 0, 0
+
             
-            # 训练阶段
-            for _, (images, labels) in enumerate(tqdm(self.train_loader, leave=False, desc=f"Epoch {epoch+1}/{self.num_epochs}")):
+            # 使用 tqdm 显示训练进度条
+            pbar = tqdm(self.train_loader, desc=f"Epoch {epoch+1}/{self.num_epochs}")
+            pbar.write(("%11s" * 2)
+                        % (
+                            "Epoch",
+                            "Loss"
+                        ))
+            for _, (images, labels) in enumerate(pbar):
                 images = images.to(self.device, non_blocking=True)
                 labels = labels.to(self.device, non_blocking=True)
                 
@@ -123,8 +122,18 @@ class Trainer:
                 _, predicted = torch.max(outputs.data, 1)
                 train_total += labels.size(0)
                 train_correct += (predicted == labels).sum().item()
-                    
                 
+                loss = loss.item()
+                
+                # 动态更新：loss 和 acc
+                pbar.set_description(                        
+                    ("%11s" * 2)
+                        % (
+                            f"{epoch + 1}/{self.num_epochs}",
+                            f"{loss:.4f}",
+                        )
+                    )
+
             
             # 计算训练指标
             train_loss /= len(self.train_loader)
@@ -132,6 +141,7 @@ class Trainer:
             
             # 验证阶段
             val_loss, val_correct, val_total = 0.0, 0, 0
+
             self.model.eval()
             with torch.no_grad():
                 for images, labels in self.val_loader:
@@ -152,12 +162,13 @@ class Trainer:
                     _, predicted = torch.max(outputs.data, 1)
                     val_total += labels.size(0)
                     val_correct += (predicted == labels).sum().item()
-            
+
             val_loss /= len(self.val_loader) if len(self.val_loader) > 0 else 0
             val_acc = 100 * val_correct / val_total if val_total > 0 else 0
+
             
             # 更新学习率
-            self.scheduler.step(val_acc)  # type: ignore
+            self.scheduler.step()  # type: ignore
             
             # 记录历史
             self.history['train_loss'].append(train_loss)
@@ -168,7 +179,6 @@ class Trainer:
             self.history['learning_rate'].append(self.optimizer.param_groups[0]['lr'])
             
             # 打印epoch结果
-            logger.info(f"Epoch {epoch+1}/{self.num_epochs} | Time: {time.time() - epoch_start:.2f}s")
             logger.info(f"Train Loss: {train_loss:.4f} | Acc: {train_acc:.2f}%")
             logger.info(f"Val Loss: {val_loss:.4f} | Acc: {val_acc:.2f}%")
             logger.info(f"Learning Rate: {self.optimizer.param_groups[0]['lr']:.6f}")
@@ -200,12 +210,12 @@ class Trainer:
 
 if __name__ == "__main__":
     # 设置设备
-    data_dir = '/mnt/E/dataset/'
+    data_dir = '/home/yee/.fiz/courseware/人工智能基础（A）/中药数据集'
     classes = {0: 'RS', 1: 'R1', 2: 'R2', 3: 'R3', 4: 'R4', 5: 'BS', 6: 'B1', 7: 'B2', 8: 'B3', 9: 'B4'}
     num_classes = len(classes)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    logger = Logger(log_dir='logs', debug_info=False)
+
 
     trainer = Trainer(dataset=data_dir, num_classes=num_classes, batch_size=10, epochs=4, device=device)
     trainer.load_data()
