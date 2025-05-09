@@ -44,15 +44,15 @@ This project implements a YOLO (You Only Look Once) classifier for object detect
    ```
    dataset/
    ├── train/
-   │   ├── images/
-   │   │   ├── 00001.jpg
+   │   ├── class_name_1/
+   │   │   ├── *.jpg
    │   │   └── ...
-   │   └── labels/
-   │   │   ├── 00001.txt
+   │   └── clss_name_2/
+   │   │   ├── *.jpg
    │   │   └── ...
    └── val/
-       ├── images/
-       └── labels/
+       ├── class_name_1/
+       └── class_name_2/
    ```
 
    The txt file only contains numbers representing categories. Please make sure to adjust the classes in the yaml file to match your categories.

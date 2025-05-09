@@ -42,15 +42,15 @@
    ```
    dataset/
    ├── train/
-   │   ├── images/
-   │   │   ├── 00001.jpg
+   │   ├── class_name_1/
+   │   │   ├── *.jpg
    │   │   └── ...
-   │   └── labels/
-   │   │   ├── 00001.txt
+   │   └── clss_name_2/
+   │   │   ├── *.jpg
    │   │   └── ...
    └── val/
-       ├── images/
-       └── labels/
+       ├── class_name_1/
+       └── class_name_2/
    ```
 
    txt 文件中仅有代表类别的数字，注意调整 yaml 文件中的 classes 与你的类别适配。
