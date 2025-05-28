@@ -5,6 +5,15 @@ import numpy as np
 import torch
 from typing import Any, Optional
 
+from sklearn.preprocessing import label_binarize
+from sklearn.metrics import roc_curve, auc
+import matplotlib.pyplot as plt
+import numpy as np
+from itertools import cycle
+
+# 设置中文显示
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 设置中文字体
+
 def plot_training_history(history: dict[str, list[float]], title : str="Training History"):
     """
     绘制训练历史曲线
@@ -88,5 +97,101 @@ def visualize_model_predictions(
         ax.axis('off')
 
     plt.tight_layout()
+    # plt.suptitle("Model Predictions", fontsize=16) # type: ignore
+    plt.savefig("model_predictions.png")  # type: ignore
     plt.show() # type: ignore
+
+
+def plot_roc_curve(
+    model : torch.nn.Module, 
+    test_loader:torch.utils.data.DataLoader[tuple[torch.Tensor, Any]], 
+    classes:dict[int, str], 
+    device: Optional[torch.device] =None, 
+    title: str = "Multiclass ROC Curve"
+):
+    """
+    绘制多分类ROC曲线
+    
+    参数:
+        model: 要评估的模型
+        test_loader: 测试数据加载器
+        classes: 类别名称列表
+        device: 使用的设备
+        title: 图表标题
+    """
+    if device is None:
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+
+    y_true = []
+    y_score = []
+
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            probs = torch.softmax(outputs, dim=1)
+
+            y_true.extend(labels.cpu().numpy())
+            y_score.extend(probs.cpu().numpy())
+    y_true = np.array(y_true)
+    y_score = np.array(y_score)
+
+    # 将标签二值化
+    n_classes = len(classes)
+    y_true_bin = label_binarize(y_true, classes=np.arange(n_classes))
+    
+    # 计算每个类别的ROC曲线和AUC
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_true_bin[:, i], y_score[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+    
+    # 计算微平均ROC曲线和AUC
+    fpr["micro"], tpr["micro"], _ = roc_curve(y_true_bin.ravel(), y_score.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+    
+    # 计算宏平均ROC曲线和AUC
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(n_classes):
+        mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])
+    mean_tpr /= n_classes
+    fpr["macro"] = all_fpr
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = auc(fpr["macro"], tpr["macro"])
+    
+    # 绘图设置
+    plt.figure(figsize=(10, 8))
+    colors = cycle(['aqua', 'darkorange', 'cornflowerblue', 'green', 'red'])
+    
+    # 绘制每个类别的ROC曲线
+    for i, color in zip(range(n_classes), colors):
+        plt.plot(fpr[i], tpr[i], color=color, lw=1.5,
+                 label=f'Class {classes[i]} (AUC = {roc_auc[i]:.2f})')
+    
+    # 绘制平均ROC曲线
+    plt.plot(fpr["micro"], tpr["micro"],
+             label=f'Micro-average (AUC = {roc_auc["micro"]:.2f})',
+             color='deeppink', linestyle=':', linewidth=4)
+    
+    plt.plot(fpr["macro"], tpr["macro"],
+             label=f'Macro-average (AUC = {roc_auc["macro"]:.2f})',
+             color='navy', linestyle=':', linewidth=4)
+    
+    # 绘制对角线
+    plt.plot([0, 1], [0, 1], 'k--', lw=1)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(title)
+    plt.legend(loc="lower right")
+    plt.grid()
+    plt.savefig(f"{title.replace(' ', '_')}.png")  # type: ignore
+    plt.show()
 
