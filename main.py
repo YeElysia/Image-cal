@@ -9,11 +9,14 @@ from tqdm import tqdm
 
 import time
 from net.yolo import YOLO_CLA
+from net.resnet import ResNet, ResBlock
+
 from data.dataset import split_dataset
-from utils.plotting import plot_training_history, visualize_model_predictions
+from utils.plotting import plot_training_history, visualize_model_predictions,plot_roc_curve
 from utils.cfg import get_cfg
 from typing import Any
 from utils.Logger import logger
+from utils import model_evaluate    
 
 class Trainer:
     def __init__(self, **kwargs: Any):
@@ -40,7 +43,8 @@ class Trainer:
             'epoch_times': [],
             'learning_rate': []
         }
-        self.model = YOLO_CLA(num_classes=self.num_classes).to(self.device)
+        # self.model = YOLO_CLA(num_classes=self.num_classes).to(self.device)
+        self.model = ResNet(ResBlock, [2, 2, 2, 2],20).to(self.device)
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.AdamW(self.model.parameters(), lr=0.001, weight_decay=0.001)
         self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.1)
@@ -203,20 +207,20 @@ class Trainer:
         # 可视化训练过程
         if self.visible:
             plot_training_history(self.history, title="Training History")
-        
-        # 可视化模型预测
-        if self.visible:
             visualize_model_predictions(self.model, self.val_loader, classes, self.device)
+            plot_roc_curve(self.model, self.val_loader, classes, self.device)
+            model_evaluate(self.model, self.val_loader, classes, self.device)
+
 
 if __name__ == "__main__":
     # 设置设备
     data_dir = '/home/yee/.fiz/courseware/人工智能基础（A）/中药数据集'
-    classes = {0: 'RS', 1: 'R1', 2: 'R2', 3: 'R3', 4: 'R4', 5: 'BS', 6: 'B1', 7: 'B2', 8: 'B3', 9: 'B4'}
+    classes =  {0: '僵蚕', 1: '党参', 2: '天南星', 3: '枸杞', 4: '槐花', 5: '牛蒡子', 6: '牡丹皮', 7: '猪苓', 8: '甘草', 9: '百合', 10: '百部', 11: '竹叶', 12: '竹茹', 13: '紫草', 14: '红藤', 15: '艾叶', 16: '荆芥', 17: '金银花', 18: '黄柏', 19: '黄芪'}
     num_classes = len(classes)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 
-    trainer = Trainer(dataset=data_dir, num_classes=num_classes, batch_size=10, epochs=4, device=device)
+    trainer = Trainer(dataset=data_dir, num_classes=num_classes, batch_size=10, epochs=10, device=device)
     trainer.load_data()
     trainer.train()  # 开始训练
