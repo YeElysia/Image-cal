@@ -1,12 +1,13 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, Optional
 from pathlib import Path
 import re
 import logging
-
-# 设置日志记录器
-LOGGER = logging.getLogger(__name__)
+import torch
+import numpy as np
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, precision_score
+from utils.Logger import logger
 
 def colorstr(*input: str) -> str:
     """为字符串添加颜色 https://en.wikipedia.org/wiki/ANSI_escape_code"""
@@ -172,3 +173,71 @@ class YAML:
         dump = instance.yaml.dump(yaml_dict, sort_keys=False, allow_unicode=True, width=-1, Dumper=instance.SafeDumper)
 
         LOGGER.info(f"打印 '{colorstr('bold', 'black', str(yaml_file))}'\n\n{dump}")
+
+
+def model_evaluate(
+    model : torch.nn.Module, 
+    test_loader:torch.utils.data.DataLoader[tuple[torch.Tensor, Any]], 
+    classes:dict[int, str], 
+    device: Optional[torch.device] =None, 
+):
+    if device is None:
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    model = model.to(device)
+
+    y_true = []
+    y_score = []
+
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            probs = torch.softmax(outputs, dim=1)
+
+            y_true.extend(labels.cpu().numpy())
+            y_score.extend(probs.cpu().numpy())
+    y_true = np.array(y_true)
+    y_score = np.argmax(y_score, axis=1)
+
+    # 计算准确率
+    accuracy = accuracy_score(y_true, y_score)
+    precision, recall, f1, _ = precision_recall_fscore_support(y_true, y_score, average='macro', zero_division='warn')
+
+    # 计算每个类别的准确率
+    class_accuracy = {}
+    for i in range(len(classes)):
+        class_mask = y_true == i
+        predicted_mask = y_score == i
+        class_accuracy[classes[i]] = accuracy_score(class_mask, predicted_mask)
+
+    # 计算每个类别的精确率
+    class_precision = {}
+    for i in range(len(classes)):
+        class_mask = y_true == i
+        predicted_mask = y_score == i
+        class_precision[classes[i]] = precision_score(class_mask, predicted_mask, average='macro', zero_division='warn')
+
+    # 计算每个类别的召回率
+    class_recall = {}
+    for i in range(len(classes)):
+        class_mask = y_true == i
+        predicted_mask = y_score == i
+        class_recall[classes[i]] = precision_recall_fscore_support(class_mask, predicted_mask, average='macro', zero_division='warn')[1]
+
+    # 计算每个类别的F1分数
+    class_f1 = {}
+    for i in range(len(classes)):
+        class_mask = y_true == i
+        predicted_mask = y_score == i
+        class_f1[classes[i]] = precision_recall_fscore_support(class_mask, predicted_mask, average='macro', zero_division='warn')[2]
+
+    logger.info(f"准确率: {accuracy}")
+    logger.info(f"精确率: {precision}")
+    logger.info(f"召回率: {recall}")
+    logger.info(f"F1分数: {f1}")
+    for i in range(len(classes)):
+        logger.info(f"类别{classes[i]}: 准确率: {class_accuracy[classes[i]]}, 精确率: {class_precision[classes[i]]}, 召回率: {class_recall[classes[i]]}, F1分数: {class_f1[classes[i]]}")
+
+    return accuracy, precision, recall, f1, class_accuracy, class_precision, class_recall, class_f1
