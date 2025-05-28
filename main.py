@@ -46,16 +46,22 @@ class Trainer:
             'epoch_times': [],
             'learning_rate': []
         }
-        model_list = [YOLO_CLA(num_classes=self.num_classes), ResNet(ResBlock, [2, 2, 2, 2],num_classes=self.num_classes), MobileNetV2(num_classes=self.num_classes)]
-        self.model = model_list[self.args.model].to(self.device)
-        
+        self.model = self.get_model().to(self.device)
+
         self.criterion = self.get_criterion()
         self.optimizer = self.get_optimizer()
         self.scheduler = self.get_scheduler()
 
         self.data_load = False
-
         self.visible = self.args.visible
+
+    def get_model(self):
+        if self.args.model == 'YOLO_CLA':
+            return YOLO_CLA(num_classes=self.num_classes)
+        elif self.args.model == 'ResNet':
+            return ResNet(ResBlock, [2, 2, 2, 2],num_classes=self.num_classes)
+        elif self.args.model == 'MobileNetV2':
+            return MobileNetV2(num_classes=self.num_classes)
 
     def get_criterion(self):
         if self.args.criterion == 'CrossEntropyLoss':
