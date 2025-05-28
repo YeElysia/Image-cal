@@ -1,7 +1,9 @@
 # Copyright (c) 2025 Yeelysia. All rights reserved.
 
+from logging import critical
 import torch
-import torch.nn as nn
+import torch.nn as nn\
+
 import os
 from torch.utils.data import DataLoader
 import torch.optim as optim
@@ -46,13 +48,38 @@ class Trainer:
         }
         model_list = [YOLO_CLA(num_classes=self.num_classes), ResNet(ResBlock, [2, 2, 2, 2],num_classes=self.num_classes), MobileNetV2(num_classes=self.num_classes)]
         self.model = model_list[self.args.model].to(self.device)
-        self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.AdamW(self.model.parameters(), lr=0.001, weight_decay=0.001)
-        self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.1)
+        
+        self.criterion = self.get_criterion()
+        self.optimizer = self.get_optimizer()
+        self.scheduler = self.get_scheduler()
 
         self.data_load = False
 
         self.visible = self.args.visible
+
+    def get_criterion(self):
+        if self.args.criterion == 'CrossEntropyLoss':
+            return nn.CrossEntropyLoss()
+        elif self.args.criterion == 'FocalLoss':
+            return nn.FocalLoss()
+        else:
+            raise ValueError(f"不支持的损失函数: {self.args.criterion}")
+        
+    def get_optimizer(self):
+        if self.args.optimizer == 'AdamW':
+            return optim.AdamW(self.model.parameters(), lr=self.args.learning_rate, weight_decay=self.args.weight_decay)
+        elif self.args.optimizer == 'SGD':
+            return optim.SGD(self.model.parameters(), lr=self.args.learning_rate, weight_decay=self.args.weight_decay)
+        else:
+            raise ValueError(f"不支持的优化器: {self.args.optimizer}")
+    
+    def get_scheduler(self):
+        if self.args.scheduler == 'StepLR':
+            return optim.lr_scheduler.StepLR(self.optimizer, step_size=self.args.step_size, gamma=self.args.gamma)
+        elif self.args.scheduler == 'CosineAnnealingLR':
+            return optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=self.args.epochs)
+        else:
+            raise ValueError(f"不支持的调度器: {self.args.scheduler}")
         
 
     def load_data(self):

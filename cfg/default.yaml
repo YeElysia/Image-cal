@@ -22,6 +22,22 @@ dataset: 'dataset' # (str) path to dataset
 epochs: 20 # (int) number of epochs to train for
 batch_size: 50 # (int) batch size, auto or int
 
+# model settings -------------------------------------------------------------------------------------------------------
+model: 'ResNet' # (str) model to use, i.e. YOLO_CLA, ResNet, MobileNetV2, etc.
+
+# criterion settings ---------------------------------------------------------------------------------------------------
+criterion: 'CrossEntropyLoss' # (str) criterion to use, i.e. CrossEntropyLoss, FocalLoss, etc.
+
+# optimizer settings ---------------------------------------------------------------------------------------------------
+optimizer: 'AdamW' # (str) optimizer to use, i.e. AdamW, SGD, etc.
+learning_rate: 0.001 # (float) learning rate
+weight_decay: 0.001 # (float) weight decay
+
+# scheduler settings ---------------------------------------------------------------------------------------------------
+scheduler: 'StepLR' # (str) scheduler to use, i.e. StepLR, CosineAnnealingLR, etc.
+step_size: 5 # (int) step size for scheduler
+gamma: 0.1 # (float) gamma for scheduler
+
 # visualization settings -----------------------------------------------------------------------------------------------
 visible: True # (bool) whether to visualize the training process
 num_images: 25 # (int) number of images to visualize
