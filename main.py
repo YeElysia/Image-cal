@@ -10,6 +10,7 @@ from tqdm import tqdm
 import time
 from net.yolo import YOLO_CLA
 from net.resnet import ResNet, ResBlock
+from net.mobilenet import MobileNetV2
 
 from data.dataset import split_dataset
 from utils.plotting import plot_training_history, visualize_model_predictions,plot_roc_curve
@@ -43,8 +44,8 @@ class Trainer:
             'epoch_times': [],
             'learning_rate': []
         }
-        # self.model = YOLO_CLA(num_classes=self.num_classes).to(self.device)
-        self.model = ResNet(ResBlock, [2, 2, 2, 2],20).to(self.device)
+        model_list = [YOLO_CLA(num_classes=self.num_classes), ResNet(ResBlock, [2, 2, 2, 2],num_classes=self.num_classes), MobileNetV2(num_classes=self.num_classes)]
+        self.model = model_list[self.args.model].to(self.device)
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = optim.AdamW(self.model.parameters(), lr=0.001, weight_decay=0.001)
         self.scheduler = optim.lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.1)
@@ -221,6 +222,6 @@ if __name__ == "__main__":
 
 
 
-    trainer = Trainer(dataset=data_dir, num_classes=num_classes, batch_size=10, epochs=10, device=device)
+    trainer = Trainer(model=1,dataset=data_dir, num_classes=num_classes, batch_size=10, epochs=10, device=device)
     trainer.load_data()
     trainer.train()  # 开始训练
